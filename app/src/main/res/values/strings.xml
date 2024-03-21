@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">AlarmWakeUp</string>
+
+    <!--Shared Preferences-->
+    <string name="shared_pref_name">SharedPreferences</string>
+    <string name="request_code_name">RequestCode</string>
+
+    <!--Days of week-->
+    <string name="monday">Понедельник</string>
+    <string name="tuesday">Вторник</string>
+    <string name="wednesday">Среда</string>
+    <string name="thursday">Четверг</string>
+    <string name="friday">Пятница</string>
+    <string name="saturday">Суббота</string>
+    <string name="sunday">Воскресенье</string>
+
+    <array name="intent_key_create_alarm">KEY_CREATE_ALARM</array>
+    <array name="intent_key_update_alarm">KEY_UPDATE_ALARM</array>
+</resources>
