@@ -1,10 +1,13 @@
 package com.project.alarmwakeup.data.alarm_clock
 
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.project.alarmwakeup.data.alarm_clock.models.AlarmClock
 import com.project.alarmwakeup.domain.alarm_clock.IAlarmClockRepository
 import com.project.alarmwakeup.domain.alarm_clock.models.AlarmInterim
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.lang.reflect.Type
 
 class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmClockRepository {
 
@@ -36,7 +39,9 @@ class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmCl
             responseTimeMillis = alarmInterim.responseTimeMillis,
             intentUri = alarmInterim.intentUri,
             requestCode = alarmInterim.requestCode,
-            isEnabled = alarmInterim.isEnabled
+            daysTriggerBlob = mapArrayToJson(alarmInterim.daysTrigger),
+            isEnabled = alarmInterim.isEnabled,
+            isRepeated = alarmInterim.isRepeated
         )
     }
 
@@ -48,8 +53,22 @@ class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmCl
             responseTimeMillis = alarmClock.responseTimeMillis,
             intentUri = alarmClock.intentUri,
             requestCode = alarmClock.requestCode,
-            isEnabled = alarmClock.isEnabled
+            daysTrigger = mapJsonToArray(alarmClock.daysTriggerBlob),
+            isEnabled = alarmClock.isEnabled,
+            isRepeated = alarmClock.isRepeated
         )
     }
+
+    private fun mapArrayToJson(daysTrigger : List<Int>) : String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        return gson.toJson(daysTrigger)
+    }
+
+    private fun mapJsonToArray(json : String) : List<Int>{
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val type : Type = object : TypeToken<List<Int>>() {}.type
+        return gson.fromJson(json, type)
+    }
+
 
 }
