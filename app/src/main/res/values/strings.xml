@@ -14,6 +14,8 @@
     <string name="saturday">Суббота</string>
     <string name="sunday">Воскресенье</string>
 
-    <array name="intent_key_create_alarm">KEY_CREATE_ALARM</array>
-    <array name="intent_key_update_alarm">KEY_UPDATE_ALARM</array>
+    <string name="intent_key_create_alarm">KEY_CREATE_ALARM</string>
+    <string name="intent_key_update_alarm">KEY_UPDATE_ALARM</string>
+    <string name="intent_key_repeating_alarm">KEY_REPEATING_ALARM</string>
+
 </resources>
