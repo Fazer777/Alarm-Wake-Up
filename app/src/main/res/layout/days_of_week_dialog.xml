@@ -1,114 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="10dp"
     app:cardCornerRadius="20dp">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:cardCornerRadius="20dp"
-        android:layout_margin="10dp">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <CheckedTextView
+            android:id="@+id/checked_tv_monday"
+            style="@style/CheckBoxStyle"
+            android:checkMark="@drawable/checkbox_states"
+            android:checked="false"
+            android:gravity="center_vertical"
+            android:text="@string/monday"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <CheckedTextView
-                android:id="@+id/checked_tv_monday"
-                android:checkMark="@drawable/checkbox_states"
-                style="@style/CheckBoxStyle"
-                android:checked="false"
-                android:gravity="center_vertical"
-                android:text="@string/monday"
-                android:textSize="20sp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"/>
-
-            <CheckedTextView
-                android:id="@+id/checked_tv_tuesday"
-                android:checkMark="@drawable/checkbox_states"
-                style="@style/CheckBoxStyle"
-                android:checked="false"
-                android:gravity="center_vertical"
-                android:text="@string/tuesday"
-                android:textSize="20sp"
-                app:layout_constraintTop_toBottomOf="@id/checked_tv_monday"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+        <CheckedTextView
+            android:id="@+id/checked_tv_tuesday"
+            style="@style/CheckBoxStyle"
+            android:checkMark="@drawable/checkbox_states"
+            android:checked="false"
+            android:gravity="center_vertical"
+            android:text="@string/tuesday"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checked_tv_monday" />
 
 
-            <CheckedTextView
-                android:id="@+id/checked_tv_wednesday"
-                android:checkMark="@drawable/checkbox_states"
-                style="@style/CheckBoxStyle"
-                android:checked="false"
-                android:gravity="center_vertical"
-                android:text="@string/wednesday"
-                android:textSize="20sp"
-                app:layout_constraintTop_toBottomOf="@id/checked_tv_tuesday"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+        <CheckedTextView
+            android:id="@+id/checked_tv_wednesday"
+            style="@style/CheckBoxStyle"
+            android:checkMark="@drawable/checkbox_states"
+            android:checked="false"
+            android:gravity="center_vertical"
+            android:text="@string/wednesday"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checked_tv_tuesday" />
 
 
-            <CheckedTextView
-                android:id="@+id/checked_tv_thursday"
-                android:checkMark="@drawable/checkbox_states"
-                style="@style/CheckBoxStyle"
-                android:checked="false"
-                android:gravity="center_vertical"
-                android:text="@string/thursday"
-                android:textSize="20sp"
-                app:layout_constraintTop_toBottomOf="@id/checked_tv_wednesday"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+        <CheckedTextView
+            android:id="@+id/checked_tv_thursday"
+            style="@style/CheckBoxStyle"
+            android:checkMark="@drawable/checkbox_states"
+            android:checked="false"
+            android:gravity="center_vertical"
+            android:text="@string/thursday"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checked_tv_wednesday" />
 
-            <CheckedTextView
-                android:id="@+id/checked_tv_friday"
-                android:checkMark="@drawable/checkbox_states"
-                style="@style/CheckBoxStyle"
-                android:checked="false"
-                android:gravity="center_vertical"
-                android:text="@string/friday"
-                android:textSize="20sp"
-                app:layout_constraintTop_toBottomOf="@id/checked_tv_thursday"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+        <CheckedTextView
+            android:id="@+id/checked_tv_friday"
+            style="@style/CheckBoxStyle"
+            android:checkMark="@drawable/checkbox_states"
+            android:checked="false"
+            android:gravity="center_vertical"
+            android:text="@string/friday"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checked_tv_thursday" />
 
-            <CheckedTextView
-                android:id="@+id/checked_tv_saturday"
-                android:checkMark="@drawable/checkbox_states"
-                style="@style/CheckBoxStyle"
-                android:checked="false"
-                android:gravity="center_vertical"
-                android:text="@string/saturday"
-                android:textSize="20sp"
-                app:layout_constraintTop_toBottomOf="@id/checked_tv_friday"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+        <CheckedTextView
+            android:id="@+id/checked_tv_saturday"
+            style="@style/CheckBoxStyle"
+            android:checkMark="@drawable/checkbox_states"
+            android:checked="false"
+            android:gravity="center_vertical"
+            android:text="@string/saturday"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checked_tv_friday" />
 
 
-            <CheckedTextView
-                android:id="@+id/checked_tv_sunday"
+        <CheckedTextView
+            android:id="@+id/checked_tv_sunday"
 
-                android:checkMark="@drawable/checkbox_states"
-                style="@style/CheckBoxStyle"
-                android:checked="false"
-                android:gravity="center_vertical"
-                android:text="@string/sunday"
-                android:textSize="20sp"
-                app:layout_constraintTop_toBottomOf="@id/checked_tv_saturday"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+            style="@style/CheckBoxStyle"
+            android:checkMark="@drawable/checkbox_states"
+            android:checked="false"
+            android:gravity="center_vertical"
+            android:text="@string/sunday"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checked_tv_saturday" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.cardview.widget.CardView>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
