@@ -1,6 +1,7 @@
 package com.project.alarmwakeup.presentation.activities
 
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -14,5 +15,8 @@ class AlarmActivity : AppCompatActivity() {
         setContentView(R.layout.activity_alarm)
         window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
         window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
+
+        val string =  intent?.getStringExtra("Key")
+        Log.d("AAA", "onCreate: $string")
     }
 }
