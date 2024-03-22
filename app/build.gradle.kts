@@ -71,6 +71,10 @@ dependencies {
     implementation("io.insert-koin:koin-android:$koinVersion")
     runtimeOnly("io.insert-koin:koin-core:$koinVersion")
 
+    // Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
