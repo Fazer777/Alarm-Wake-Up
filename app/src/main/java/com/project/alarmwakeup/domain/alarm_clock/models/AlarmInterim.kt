@@ -9,5 +9,7 @@ data class AlarmInterim(
     val responseTimeMillis: Long,
     val intentUri: String,
     val requestCode: Int,
-    val isEnabled: Boolean = true
+    val daysTrigger : List<Int>,
+    val isEnabled: Boolean = true,
+    val isRepeated : Boolean = false
 ) : Serializable
