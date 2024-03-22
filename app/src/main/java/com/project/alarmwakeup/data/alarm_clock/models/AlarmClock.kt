@@ -20,5 +20,9 @@ data class AlarmClock(
     @ColumnInfo(name = "RequestCode")
     val requestCode: Int,
     @ColumnInfo(name = "IsEnabled")
-    val isEnabled: Boolean = true
+    val isEnabled: Boolean = true,
+    @ColumnInfo(name = "DaysTriggerBlob")
+    val daysTriggerBlob : String,
+    @ColumnInfo(name = "IsRepeated")
+    val isRepeated: Boolean = false
 ) : Serializable
