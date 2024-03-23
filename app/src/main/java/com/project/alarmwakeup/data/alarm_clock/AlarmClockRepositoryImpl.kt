@@ -30,6 +30,12 @@ class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmCl
         }
     }
 
+    override suspend fun updateEnablingAlarmClockDb(alarmClockId: Int, isEnabled: Boolean) {
+        withContext(Dispatchers.IO){
+            alarmDao.updateEnablingAlarmClock(alarmClockId = alarmClockId, isEnabled = isEnabled)
+        }
+    }
+
 
     private fun mapToAlarmClock(alarmInterim: AlarmInterim) : AlarmClock{
         return AlarmClock(
@@ -38,8 +44,8 @@ class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmCl
             responseTime = alarmInterim.responseTime,
             responseTimeMillis = alarmInterim.responseTimeMillis,
             intentUri = alarmInterim.intentUri,
-            requestCode = alarmInterim.requestCode,
-            daysTriggerBlob = mapArrayToJson(alarmInterim.daysTrigger),
+            requestCodes = mapRequestCodesToJson(alarmInterim.requestCodes),
+            daysTriggerBlob = mapDaysTriggerToJson(alarmInterim.daysTrigger),
             isEnabled = alarmInterim.isEnabled,
             isRepeated = alarmInterim.isRepeated
         )
@@ -52,21 +58,32 @@ class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmCl
             responseTime = alarmClock.responseTime,
             responseTimeMillis = alarmClock.responseTimeMillis,
             intentUri = alarmClock.intentUri,
-            requestCode = alarmClock.requestCode,
-            daysTrigger = mapJsonToArray(alarmClock.daysTriggerBlob),
+            requestCodes = mapRequestCodesJsonToArray(alarmClock.requestCodes),
+            daysTrigger = mapDaysTriggerJsonToArray(alarmClock.daysTriggerBlob),
             isEnabled = alarmClock.isEnabled,
             isRepeated = alarmClock.isRepeated
         )
     }
 
-    private fun mapArrayToJson(daysTrigger : List<Int>) : String {
+    private fun mapDaysTriggerToJson(daysTrigger : List<Int>) : String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.toJson(daysTrigger)
     }
 
-    private fun mapJsonToArray(json : String) : List<Int>{
+    private fun mapDaysTriggerJsonToArray(json : String) : List<Int>{
         val gson = GsonBuilder().setPrettyPrinting().create()
         val type : Type = object : TypeToken<List<Int>>() {}.type
+        return gson.fromJson(json, type)
+    }
+
+    private fun mapRequestCodesToJson(requestCodes : List<Int>) : String{
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        return gson.toJson(requestCodes)
+    }
+
+    private fun mapRequestCodesJsonToArray(json : String) : List<Int>{
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val type : Type = object : TypeToken<List<Int>>(){}.type
         return gson.fromJson(json, type)
     }
 

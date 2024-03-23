@@ -9,12 +9,14 @@ import com.project.alarmwakeup.domain.alarm_clock.models.AlarmInterim
 import com.project.alarmwakeup.domain.alarm_clock.usecase.AddAlarmUseCase
 import com.project.alarmwakeup.domain.alarm_clock.usecase.DeleteAlarmUseCase
 import com.project.alarmwakeup.domain.alarm_clock.usecase.GetAlarmClocksUseCase
+import com.project.alarmwakeup.domain.alarm_clock.usecase.SwitchEnablingUseCase
 import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val addAlarmUseCase: AddAlarmUseCase,
     private val deleteAlarmUseCase: DeleteAlarmUseCase,
-    private val getAlarmClocksUseCase: GetAlarmClocksUseCase
+    private val getAlarmClocksUseCase: GetAlarmClocksUseCase,
+    private val switchEnablingUseCase: SwitchEnablingUseCase
 ) : ViewModel() {
 
     private val alarmClockListMutableLive = MutableLiveData<List<AlarmInterim>>()
@@ -42,6 +44,12 @@ class MainViewModel(
     fun onDeleteAlarmButtonCLicked(alarmClockId: Int) {
         viewModelScope.launch {
             deleteAlarmUseCase.execute(alarmClockId = alarmClockId)
+        }
+    }
+
+    fun onSwitchEnablingEvent(alarmClockId: Int, isEnabled : Boolean){
+        viewModelScope.launch{
+            switchEnablingUseCase.execute(alarmClockId = alarmClockId, isEnabled = isEnabled)
         }
     }
 

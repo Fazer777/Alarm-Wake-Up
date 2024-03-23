@@ -8,4 +8,5 @@ interface IAlarmClockRepository {
     suspend fun getAllAlarmClocksFromDb() : List<AlarmInterim>
 
     suspend fun deleteAlarmClockFromDb(alarmClockId : Int)
+    suspend fun updateEnablingAlarmClockDb(alarmClockId : Int, isEnabled : Boolean)
 }

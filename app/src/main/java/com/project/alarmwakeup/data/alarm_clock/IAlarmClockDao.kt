@@ -16,4 +16,7 @@ interface IAlarmClockDao {
 
     @Query("DELETE FROM AlarmClocks WHERE id = :alarmClockId")
     fun deleteAlarmClock(alarmClockId: Int)
+
+    @Query("UPDATE AlarmClocks SET IsEnabled = :isEnabled WHERE id = :alarmClockId")
+    fun updateEnablingAlarmClock(alarmClockId: Int, isEnabled : Boolean)
 }
