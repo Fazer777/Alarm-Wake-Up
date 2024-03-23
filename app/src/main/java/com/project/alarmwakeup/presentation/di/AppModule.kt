@@ -9,7 +9,8 @@ val appModule = module {
         MainViewModel(
             addAlarmUseCase = get(),
             deleteAlarmUseCase = get(),
-            getAlarmClocksUseCase = get()
+            getAlarmClocksUseCase = get(),
+            switchEnablingUseCase = get()
         )
     }
 }
