@@ -18,7 +18,7 @@ data class AlarmClock(
     @ColumnInfo(name = "IntentUri")
     val intentUri: String,
     @ColumnInfo(name = "RequestCode")
-    val requestCode: Int,
+    val requestCodes: String,
     @ColumnInfo(name = "IsEnabled")
     val isEnabled: Boolean = true,
     @ColumnInfo(name = "DaysTriggerBlob")

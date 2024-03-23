@@ -8,7 +8,7 @@ data class AlarmInterim(
     val responseTime: String,
     val responseTimeMillis: Long,
     val intentUri: String,
-    val requestCode: Int,
+    val requestCodes: List<Int>,
     val daysTrigger : List<Int>,
     val isEnabled: Boolean = true,
     val isRepeated : Boolean = false
