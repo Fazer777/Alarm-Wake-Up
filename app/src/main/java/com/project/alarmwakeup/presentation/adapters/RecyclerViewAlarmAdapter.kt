@@ -1,5 +1,6 @@
 package com.project.alarmwakeup.presentation.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,9 +21,9 @@ class RecyclerViewAlarmAdapter : RecyclerView.Adapter<RecyclerViewAlarmAdapter.A
 
         fun bind(alarmInterim: AlarmInterim) : Unit = with(binding) {
             textViewTitleAlarm.text = alarmInterim.title
-            textViewResponseTime.text = alarmInterim.responseTime
+            textViewResponseTime.text = getFormatTime(hour = alarmInterim.hour, minute = alarmInterim.minute)
             switchAlarmClock.isChecked =  alarmInterim.isEnabled
-            displayDaysTrigger(alarmInterim.daysTrigger)
+            displayDaysTrigger(alarmInterim.daysTrigger, alarmInterim.isRepeated)
 
             switchAlarmClock.setOnCheckedChangeListener { buttonView, isChecked ->
                 listener?.onItemSwitch(itemView, isChecked, adapterPosition)
@@ -38,16 +39,23 @@ class RecyclerViewAlarmAdapter : RecyclerView.Adapter<RecyclerViewAlarmAdapter.A
             }
         }
 
-        private fun displayDaysTrigger(daysOfWeek : List<Int>) : Unit = with(binding) {
+        private fun displayDaysTrigger(daysOfWeek : List<Day>, isRepeated : Boolean) : Unit = with(binding) {
             textViewDaysOfWeek.text = ""
-            if (daysOfWeek.isEmpty()) {
+            if (!isRepeated){
                 textViewDaysOfWeek.text = "Одноразовый"
             }
             else{
-                for(day in daysOfWeek){
-                    textViewDaysOfWeek.append(Day.dayOfWeekToString(day) + " ")
+                daysOfWeek.forEach{day ->
+                    Log.d("AAA", "displayDaysTrigger: ${day.isEnabled}")
+                    if(day.isEnabled){
+                        textViewDaysOfWeek.append(Day.dayOfWeekToString(day.dayOfWeek) + " ")
+                    }
                 }
             }
+
+        }
+        private fun getFormatTime(hour : Int, minute : Int) : String{
+            return "$hour:$minute"
         }
     }
 
