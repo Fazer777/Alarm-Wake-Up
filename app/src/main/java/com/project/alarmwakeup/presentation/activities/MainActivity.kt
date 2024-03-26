@@ -9,6 +9,7 @@ import android.content.SharedPreferences
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.alarmwakeup.R
 import com.project.alarmwakeup.databinding.ActivityMainBinding
 import com.project.alarmwakeup.domain.alarm_clock.models.AlarmInterim
+import com.project.alarmwakeup.domain.alarm_clock.models.Day
 import com.project.alarmwakeup.presentation.adapters.RecyclerViewAlarmAdapter
 import com.project.alarmwakeup.presentation.viewmodels.MainViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -32,13 +34,18 @@ class MainActivity : AppCompatActivity() {
     private val alarmAdapter = RecyclerViewAlarmAdapter()
     private var alarmId: Long = 0
     private var alarmInterim: AlarmInterim? = null
+    private var requestCodesCount = 0
 
     private val createAlarm: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val alarmIntent = result.data
-        alarmIntent?.let {intent ->
-            alarmInterim = getSerializable(intent, resources.getString(R.string.intent_key_create_alarm), AlarmInterim::class.java)
+        alarmIntent?.let { intent ->
+            alarmInterim = getSerializable(
+                intent,
+                resources.getString(R.string.intent_key_create_alarm),
+                AlarmInterim::class.java
+            )
             mainViewModel.onAddAlarmButtonClicked(alarmInterim!!)
         }
     }
@@ -60,6 +67,26 @@ class MainActivity : AppCompatActivity() {
         initObservers()
     }
 
+    override fun onResume() {
+        super.onResume()
+        requestCodesCount = sharedPreferences.getInt(
+            resources.getString(R.string.request_code_name),
+            0
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sharedPreferences
+            .edit()
+            .putInt(
+                resources.getString(R.string.request_code_name),
+                requestCodesCount
+            )
+            .apply()
+    }
+
+
     private fun initObservers() {
         mainViewModel.alarmId.observe(this@MainActivity) {
             alarmId = it
@@ -79,94 +106,177 @@ class MainActivity : AppCompatActivity() {
 
         alarmAdapter.setOnItemClickListener(object : RecyclerViewAlarmAdapter.OnItemClickListener {
             override fun onItemSwitch(itemView: View, isChecked: Boolean, position: Int) {
-//                val alarmClock = alarmAdapter.getAdapterItem(position)
-//                if (isChecked){
-//                    scheduleAlarm(alarmClock)
-//                    mainViewModel.onSwitchEnablingEvent(
-//                        alarmClockId = alarmClock.id.toInt(),
-//                        isEnabled = isChecked
-//                    )
-//                    Toast.makeText(this@MainActivity, "AlarmClock Scheduled", Toast.LENGTH_SHORT).show()
-//                }
-//                else{
-//                    cancelAlarm(alarmClock)
-//                    mainViewModel.onSwitchEnablingEvent(
-//                        alarmClockId = alarmClock.id.toInt(),
-//                        isEnabled = isChecked
-//                    )
-//                    Toast.makeText(this@MainActivity, "AlarmClock Canceled", Toast.LENGTH_SHORT).show()
-//                }
+                val alarmInterim = alarmAdapter.getAdapterItem(position)
+                if (isChecked){
+                    scheduleAlarm(alarmInterim)
+                    mainViewModel.onSwitchEnablingEvent(
+                        alarmClockId = alarmInterim.id.toInt(),
+                        isEnabled = isChecked
+                    )
+                    Toast.makeText(this@MainActivity, "AlarmClock Scheduled", Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    cancelAlarm(alarmInterim)
+                    mainViewModel.onSwitchEnablingEvent(
+                        alarmClockId = alarmInterim.id.toInt(),
+                        isEnabled = isChecked
+                    )
+                    Toast.makeText(this@MainActivity, "AlarmClock Canceled", Toast.LENGTH_SHORT).show()
+                }
             }
 
             override fun onItemShortClick(itemView: View, position: Int) {
 
             }
 
+            // TODO ("in the future, need do alert dialog)
             override fun onItemLongClick(itemView: View, position: Int) {
+                val alarmInterim = alarmAdapter.getAdapterItem(position)
+                mainViewModel.onDeleteAlarmButtonCLicked(alarmInterim.id.toInt())
+                cancelAlarm(alarmInterim)
+                alarmAdapter.deleteAlarm(position = position)
+                when(alarmInterim.isRepeated){
+                    true ->{
+                        val countDays = alarmInterim.daysTrigger.count{it.isEnabled}
+                        for(i in 0 until countDays){
+                            requestCodesCount--
+                        }
+                    }
+                    false ->{
+                        requestCodesCount--
+                    }
+                }
 
             }
         })
     }
 
     private fun scheduleAlarm(alarm: AlarmInterim) {
-//        val alarmIntent : Intent = Intent.parseUri(alarm.intentUri, 0)
-//
-//        if (alarm.isRepeated){
-//            setOneTimeAlarm(alarmIntent = alarmIntent, triggerTimeInMillis = alarm.responseTimeMillis, alarm.requestCodes[0])
-//        }
-//        else{
-//            setRepeatedAlarm(alarmIntent = alarmIntent, daysOfTriggers = alarm.daysTrigger, triggerTimeInMillis = alarm.responseTimeMillis)
-//        }
+        val alarmIntent: Intent = Intent.parseUri(alarm.intentUri, Intent.URI_INTENT_SCHEME)
+
+        if (!alarm.isRepeated) {
+            setOneTimeAlarm(
+                alarmIntent = alarmIntent,
+                triggerTimeInMillis = alarm.responseTimeMillis,
+                alarm.oneTimeRequestCode!!
+            )
+        } else {
+            setRepeatedAlarm(
+                alarmIntent = alarmIntent,
+                daysTriggers = alarm.daysTrigger,
+                triggerTimeInMillis = alarm.responseTimeMillis
+            )
+        }
     }
 
     @SuppressLint("ScheduleExactAlarm")
     private fun setOneTimeAlarm(alarmIntent: Intent, triggerTimeInMillis: Long, requestCode: Int) {
-//        val operation = PendingIntent.getActivity(
-//            this@MainActivity,
-//            requestCode,
-//            alarmIntent,
-//            PendingIntent.FLAG_UPDATE_CURRENT
-//        )
-//        val targetCal = Calendar.getInstance().apply {
-//            timeInMillis = triggerTimeInMillis
-//        }
-//
-//        val diff = Calendar.getInstance().timeInMillis - targetCal.timeInMillis
-//        if (diff > 0) targetCal.add(Calendar.DAY_OF_WEEK, 1)
-//        alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, operation)
+        calendar = Calendar.getInstance().apply {
+            timeInMillis = triggerTimeInMillis
+        }
+
+        checkRescheduleForNDays(1)
+        setAlarm(requestCode, alarmIntent)
     }
 
-    private fun setRepeatedAlarm(alarmIntent: Intent, daysOfTriggers: List<Int>, triggerTimeInMillis: Long, requestCodes : List<Int>) {
-//        val targetCal = Calendar.getInstance().apply {
-//            timeInMillis = triggerTimeInMillis
-//        }
-//
-//        for(i in 0 until 7){
-//            if (daysOfTriggers.contains(targetCal.get(Calendar.DAY_OF_WEEK))){
-//                val diff = Calendar.getInstance().timeInMillis - targetCal.timeInMillis
-//                if (diff > 0) targetCal.add(Calendar.DAY_OF_WEEK, 7)
-//
-//                val operation = PendingIntent.getActivity(
-//                    this@MainActivity,
-//                    requestCodeCount,
-//                    alarmIntent,
-//                    PendingIntent.FLAG_UPDATE_CURRENT
-//                )
-//                requestCodes.add(requestCodeCount++)
-//                alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, operation)
-//            }
-//            targetCal.add(Calendar.DAY_OF_MONTH, 1)
-//        }
+    @SuppressLint("ScheduleExactAlarm")
+    private fun setRepeatedAlarm(
+        alarmIntent: Intent,
+        daysTriggers: List<Day>,
+        triggerTimeInMillis: Long
+    ) {
+
+        calendar = Calendar.getInstance().apply {
+            timeInMillis = triggerTimeInMillis
+        }
+
+        for (i in 0 until 7) {
+
+            when (calendar.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> {
+                    setAlarmForDay(daysTriggers[0] , alarmIntent)
+                }
+
+                Calendar.TUESDAY -> {
+                    setAlarmForDay(daysTriggers[1], alarmIntent)
+                }
+
+                Calendar.WEDNESDAY -> {
+                    setAlarmForDay(daysTriggers[2], alarmIntent)
+                }
+
+                Calendar.THURSDAY -> {
+                    setAlarmForDay(daysTriggers[3], alarmIntent)
+                }
+
+                Calendar.FRIDAY -> {
+                    setAlarmForDay(daysTriggers[4], alarmIntent)
+                }
+
+                Calendar.SATURDAY -> {
+                    setAlarmForDay(daysTriggers[5], alarmIntent)
+                }
+
+                Calendar.SUNDAY -> {
+                    setAlarmForDay(daysTriggers[6], alarmIntent)
+                }
+            }
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
+    }
+
+    @SuppressLint("ScheduleExactAlarm")
+    private fun setAlarm(requestCode: Int, alarmIntent: Intent) {
+        val operation = PendingIntent.getActivity(
+            applicationContext,
+            requestCode,
+            alarmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, operation)
+    }
+
+    private fun setAlarmForDay(
+        day : Day,
+        alarmIntent: Intent
+    ) {
+        if (!day.isEnabled) {
+            return
+        }
+        checkRescheduleForNDays(amountDays = 7)
+        setAlarm(day.requestCode!!, alarmIntent)
+    }
+
+    private fun checkRescheduleForNDays(amountDays: Int) {
+        val diff = Calendar.getInstance().timeInMillis - calendar.timeInMillis
+        if (diff > 0) calendar.add(Calendar.DAY_OF_WEEK, amountDays)
     }
 
     private fun cancelAlarm(alarm: AlarmInterim) {
-//        val intent : Intent = Intent.parseUri(alarm.intentUri, 0)
-//        val operation = PendingIntent.getActivity(
-//            this@MainActivity,
-//            alarm.requestCodes,
-//            intent,
-//            PendingIntent.FLAG_UPDATE_CURRENT)
-//        alarmManager.cancel(operation)
+        if (!alarm.isRepeated) {
+            Log.d("AAA", "cancelOneTimeAlarm: ${alarm.oneTimeRequestCode} ")
+            cancel(alarm.oneTimeRequestCode!!, alarm.isRepeated)
+        } else {
+            alarm.daysTrigger.forEach { day ->
+                if (day.isEnabled) {
+                    Log.d("AAA", "cancelRepeatedAlarm: ${day.requestCode!!} ")
+                    cancel(day.requestCode!!, alarm.isRepeated)
+                }
+            }
+        }
+    }
+
+    // TODO ("Working Incorrect")
+    private fun cancel(requestCode: Int, isRepeated: Boolean) {
+        val intent = Intent(baseContext, AlarmActivity::class.java)
+        intent.putExtra(resources.getString(R.string.intent_key_repeating_alarm), isRepeated)
+        val operation = PendingIntent.getActivity(
+            applicationContext,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        alarmManager.cancel(operation)
     }
 
     private fun initButtons() = with(binding) {
@@ -175,11 +285,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun <T : Serializable?> getSerializable (intent : Intent, key:String, m_class: Class<T>) : T {
-        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+    private fun <T : Serializable?> getSerializable(
+        intent: Intent,
+        key: String,
+        m_class: Class<T>
+    ): T {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra(key, m_class)!!
-        }
-        else{
+        } else {
             intent.getSerializableExtra(key) as T
         }
     }
