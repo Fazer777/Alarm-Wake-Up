@@ -1,8 +1,13 @@
 package com.project.alarmwakeup.domain.alarm_clock.models
 
 import android.icu.util.Calendar
+import java.io.Serializable
 
-abstract class Day{
+data class Day(
+    val dayOfWeek: Int,
+    var requestCode: Int?,
+    var isEnabled : Boolean
+) : Serializable {
     companion object{
         fun dayOfWeekToString(dayOfWeek: Int): String {
             return when (dayOfWeek) {
