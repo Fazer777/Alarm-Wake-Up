@@ -11,18 +11,20 @@ data class AlarmClock(
     val id : Long,
     @ColumnInfo(name = "Title")
     val title: String,
-    @ColumnInfo(name = "ResponseTime")
-    val responseTime: String,
+    @ColumnInfo(name = "Hour")
+    val hour: Int,
+    @ColumnInfo(name = "Minute")
+    val minute: Int,
     @ColumnInfo(name = "ResponseTimeMillis")
     val responseTimeMillis: Long,
     @ColumnInfo(name = "IntentUri")
     val intentUri: String,
-    @ColumnInfo(name = "RequestCode")
-    val requestCodes: String,
+    @ColumnInfo(name = "OneTimeRequestCode")
+    val oneTimeRequestCode: Int?,
+    @ColumnInfo(name = "DaysTriggerJson")
+    val daysTriggerJson : String,
     @ColumnInfo(name = "IsEnabled")
     val isEnabled: Boolean = true,
-    @ColumnInfo(name = "DaysTriggerBlob")
-    val daysTriggerBlob : String,
     @ColumnInfo(name = "IsRepeated")
     val isRepeated: Boolean = false
 ) : Serializable
