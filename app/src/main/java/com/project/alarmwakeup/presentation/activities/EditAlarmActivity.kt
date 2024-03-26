@@ -6,6 +6,7 @@ import android.app.Dialog
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.URI_INTENT_SCHEME
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -26,27 +27,36 @@ import java.util.Locale
 
 class EditAlarmActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEditAlarmBinding
+    private lateinit var sharedPref: SharedPreferences
     private lateinit var alarmManager: AlarmManager
     private lateinit var targetCal: Calendar
     private var isRepeated = false
     private var isEditAction = false
-    private var daysTrigger: ArrayList<Int> = arrayListOf()
-    private val requestCodes: ArrayList<Int> = arrayListOf()
     private var requestCodeCount = 0
-    private lateinit var sharedPref: SharedPreferences
+
+    private var daysTrigger: List<Day> = listOf(
+        Day(Calendar.MONDAY, null, false),
+        Day(Calendar.TUESDAY, null, false),
+        Day(Calendar.WEDNESDAY, null, false),
+        Day(Calendar.THURSDAY, null, false),
+        Day(Calendar.FRIDAY, null, false),
+        Day(Calendar.SATURDAY, null, false),
+        Day(Calendar.SUNDAY, null, false)
+    )
+
+    private var resultIntent : Intent? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEditAlarmBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-
-
-
         sharedPref = getSharedPreferences(
             resources.getString(R.string.shared_pref_name),
             Context.MODE_PRIVATE
         )
+
         binding.timePicker.setIs24HourView(true)
         initButtons()
         getMyIntent()
@@ -76,12 +86,12 @@ class EditAlarmActivity : AppCompatActivity() {
     }
 
     private fun setData() {
+        // TODO ("EDIT ACTION IS NOT IMPLEMENTED")
     }
 
     private fun initButtons() = with(binding) {
         materialBtnScheduleAlarm.setOnClickListener {
             scheduleAlarm()
-            requestCodeCount++
         }
 
         textViewDaysOfWeek.setOnClickListener {
@@ -100,131 +110,137 @@ class EditAlarmActivity : AppCompatActivity() {
 
         dialogBinding.apply {
 
-
-            setDaysTrigger(Calendar.MONDAY, checkedTvMonday)
-            setDaysTrigger(Calendar.TUESDAY, checkedTvTuesday)
-            setDaysTrigger(Calendar.WEDNESDAY, checkedTvWednesday)
-            setDaysTrigger(Calendar.THURSDAY, checkedTvThursday)
-            setDaysTrigger(Calendar.FRIDAY, checkedTvFriday)
-            setDaysTrigger(Calendar.SATURDAY, checkedTvSaturday)
-            setDaysTrigger(Calendar.SUNDAY, checkedTvSunday)
+            setDaysTrigger(daysTrigger[0], checkedTvMonday)
+            setDaysTrigger(daysTrigger[1], checkedTvTuesday)
+            setDaysTrigger(daysTrigger[2], checkedTvWednesday)
+            setDaysTrigger(daysTrigger[3], checkedTvThursday)
+            setDaysTrigger(daysTrigger[4], checkedTvFriday)
+            setDaysTrigger(daysTrigger[5], checkedTvSaturday)
+            setDaysTrigger(daysTrigger[6], checkedTvSunday)
 
 
             var isChecked: Boolean
             checkedTvMonday.setOnClickListener {
                 isChecked = checkedTvMonday.isChecked
                 checkChanges(it, isChecked)
-                checkEnabledDaysTrigger(Calendar.MONDAY)
+                checkEnabledDaysTrigger(daysTrigger[0])
 
             }
 
             checkedTvTuesday.setOnClickListener {
                 isChecked = checkedTvTuesday.isChecked
                 checkChanges(it, isChecked)
-                checkEnabledDaysTrigger(Calendar.TUESDAY)
+                checkEnabledDaysTrigger(daysTrigger[1])
             }
 
             checkedTvWednesday.setOnClickListener {
                 isChecked = checkedTvWednesday.isChecked
                 checkChanges(it, isChecked)
-                checkEnabledDaysTrigger(Calendar.WEDNESDAY)
+                checkEnabledDaysTrigger(daysTrigger[2])
             }
 
             checkedTvThursday.setOnClickListener {
                 isChecked = checkedTvThursday.isChecked
                 checkChanges(it, isChecked)
-                checkEnabledDaysTrigger(Calendar.THURSDAY)
+                checkEnabledDaysTrigger(daysTrigger[3])
             }
 
             checkedTvFriday.setOnClickListener {
                 isChecked = checkedTvFriday.isChecked
                 checkChanges(it, isChecked)
-                checkEnabledDaysTrigger(Calendar.FRIDAY)
+                checkEnabledDaysTrigger(daysTrigger[4])
             }
 
             checkedTvSaturday.setOnClickListener {
                 isChecked = checkedTvSaturday.isChecked
                 checkChanges(it, isChecked)
-                checkEnabledDaysTrigger(Calendar.SATURDAY)
+                checkEnabledDaysTrigger(daysTrigger[5])
             }
 
             checkedTvSunday.setOnClickListener {
                 isChecked = checkedTvSunday.isChecked
                 checkChanges(it, isChecked)
-                checkEnabledDaysTrigger(Calendar.SUNDAY)
+                checkEnabledDaysTrigger(daysTrigger[6])
             }
         }
 
         dialog.setOnCancelListener {
-            isRepeated = daysTrigger.isNotEmpty()
-
+            isRepeated = checkIsRepeatedAlarm()
             binding.textViewDaysOfWeek.text = ""
-            for (day in daysTrigger) {
-                binding.textViewDaysOfWeek.append(Day.dayOfWeekToString(day) + " ")
+
+            daysTrigger.forEach {day ->
+                if(day.isEnabled){
+                    binding.textViewDaysOfWeek.append(Day.dayOfWeekToString(day.dayOfWeek) + " ")
+                }
             }
         }
 
         dialog.show()
     }
 
-    private fun setDaysTrigger(dayTrigger: Int, view: View) {
-        (view as CheckedTextView).isChecked = daysTrigger.contains(dayTrigger)
+    private fun checkIsRepeatedAlarm() : Boolean {
+        return daysTrigger.count { it.isEnabled } != 0
+    }
+
+    private fun setDaysTrigger(dayTrigger: Day, view: View) {
+        (view as CheckedTextView).isChecked = dayTrigger.isEnabled
     }
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleAlarm() {
-        val alarmIntent = Intent(this@EditAlarmActivity, AlarmActivity::class.java)
+        val alarmIntent = Intent(baseContext, AlarmActivity::class.java)
         alarmIntent.putExtra(resources.getString(R.string.intent_key_repeating_alarm), isRepeated)
 
         if (isRepeated) {
-            setRepeatedAlarm(alarmIntent, daysTrigger)
+            setRepeatedAlarm(alarmIntent)
         } else {
 
             setOneTimeAlarm(alarmIntent)
         }
 
-        val alarmInterim = AlarmInterim(
-            id = 0,
-            title = binding.editTextTitleAlarm.text.toString(),
-            responseTime = getFormatTime(),
-            responseTimeMillis = targetCal.timeInMillis,
-            intentUri = alarmIntent.toUri(0),
-            requestCodes = requestCodes,
-            daysTrigger = daysTrigger,
-            isEnabled = true,
-            isRepeated = isRepeated
-        )
-        val intentStorage = Intent()
-        intentStorage.putExtra(resources.getString(R.string.intent_key_create_alarm), alarmInterim)
-        setResult(RESULT_OK, intentStorage)
+        setResult(RESULT_OK, resultIntent)
         finish()
     }
 
     @SuppressLint("ScheduleExactAlarm")
     private fun setOneTimeAlarm(alarmIntent : Intent) {
-
-        val operation = PendingIntent.getActivity(
-            this@EditAlarmActivity,
-            requestCodeCount,
-            alarmIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        requestCodes.add(requestCodeCount++)
         targetCal = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, binding.timePicker.hour)
             set(Calendar.MINUTE, binding.timePicker.minute)
             set(Calendar.SECOND, 0)
         }
-        val diff = Calendar.getInstance().timeInMillis - targetCal.timeInMillis
-        if (diff > 0) targetCal.add(Calendar.DAY_OF_WEEK, 1)
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, operation)
+
+        val alarmInterim = AlarmInterim(
+            id = 0,
+            title = binding.editTextTitleAlarm.text.toString(),
+            hour = binding.timePicker.hour,
+            minute = binding.timePicker.minute,
+            responseTimeMillis = targetCal.timeInMillis,
+            intentUri = alarmIntent.toUri(URI_INTENT_SCHEME),
+            oneTimeRequestCode = requestCodeCount,
+            daysTrigger = daysTrigger,
+            isEnabled = true,
+            isRepeated = isRepeated
+        )
+
+        resultIntent = Intent()
+        resultIntent?.putExtra(
+            resources.getString(R.string.intent_key_create_alarm),
+            alarmInterim
+        )
+
+
+        checkRescheduleForNDays(amountDays = 1)
+        setAlarm(requestCodeCount, alarmIntent)
+        Log.d("AAA", "EditAct_setOneTimeAlam: $requestCodeCount ")
+        requestCodeCount++
     }
 
     @SuppressLint("ScheduleExactAlarm")
-    private fun setRepeatedAlarm(alarmIntent: Intent, daysOfTriggers: List<Int>) {
+    private fun setRepeatedAlarm(alarmIntent: Intent) {
 
-
+        Log.d("AAA", "*** setRepeatedAlarm ***")
         targetCal = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, binding.timePicker.hour)
@@ -233,40 +249,92 @@ class EditAlarmActivity : AppCompatActivity() {
         }
 
         for(i in 0 until 7){
-            if (daysOfTriggers.contains(targetCal.get(Calendar.DAY_OF_WEEK))){
-                val diff = Calendar.getInstance().timeInMillis - targetCal.timeInMillis
-                if (diff > 0) targetCal.add(Calendar.DAY_OF_WEEK, 7)
 
-                val operation = PendingIntent.getActivity(
-                    this@EditAlarmActivity,
-                    requestCodeCount,
-                    alarmIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                )
-                requestCodes.add(requestCodeCount++)
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, operation)
+            when(targetCal.get(Calendar.DAY_OF_WEEK)){
+                Calendar.MONDAY ->{
+                    setAlarmForDay(dayTriggerIndex = 0, alarmIntent)
+                    requestCodeCount++
+                }
+                Calendar.TUESDAY ->{
+                    setAlarmForDay(dayTriggerIndex = 1, alarmIntent)
+                    requestCodeCount++
+                }
+                Calendar.WEDNESDAY -> {
+                    setAlarmForDay(dayTriggerIndex = 2, alarmIntent)
+                    requestCodeCount++
+                }
+                Calendar.THURSDAY ->{
+                    setAlarmForDay(dayTriggerIndex = 3, alarmIntent)
+                    requestCodeCount++
+                }
+                Calendar.FRIDAY ->{
+                    setAlarmForDay(dayTriggerIndex = 4, alarmIntent)
+                    requestCodeCount++
+                }
+                Calendar.SATURDAY -> {
+                    setAlarmForDay(dayTriggerIndex = 5, alarmIntent)
+                    requestCodeCount++
+                }
+                Calendar.SUNDAY ->
+                {
+                    setAlarmForDay(dayTriggerIndex = 6, alarmIntent)
+                    requestCodeCount++
+                }
             }
             targetCal.add(Calendar.DAY_OF_MONTH, 1)
         }
 
+        val alarmInterim = AlarmInterim(
+            id = 0,
+            title = binding.editTextTitleAlarm.text.toString(),
+            hour = binding.timePicker.hour,
+            minute = binding.timePicker.minute,
+            responseTimeMillis = targetCal.timeInMillis,
+            intentUri = alarmIntent.toUri(URI_INTENT_SCHEME),
+            oneTimeRequestCode = requestCodeCount,
+            daysTrigger = daysTrigger,
+            isEnabled = true,
+            isRepeated = isRepeated
+        )
+
+        resultIntent = Intent()
+        resultIntent?.putExtra(
+            resources.getString(R.string.intent_key_create_alarm),
+            alarmInterim
+        )
+    }
+    @SuppressLint("ScheduleExactAlarm")
+    private fun setAlarm(requestCode : Int, alarmIntent: Intent){
+        val operation = PendingIntent.getActivity(
+            applicationContext,
+            requestCode,
+            alarmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        Log.d("AAA", "EditAct_setRepeatedAlam: $requestCode ")
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, operation)
     }
 
-    private fun getFormatTime(): String {
-        val simpleDateFormat = SimpleDateFormat("HH:mm", Locale.ROOT)
-        return simpleDateFormat.format(targetCal.time)
+    private fun setAlarmForDay(dayTriggerIndex : Int, alarmIntent: Intent){
+        if (!daysTrigger[dayTriggerIndex].isEnabled){
+            return
+        }
+        checkRescheduleForNDays(amountDays = 7)
+        daysTrigger[dayTriggerIndex].requestCode = requestCodeCount
+        setAlarm(daysTrigger[dayTriggerIndex].requestCode!!, alarmIntent)
+    }
+
+    private fun checkRescheduleForNDays(amountDays : Int)
+    {
+        val diff = Calendar.getInstance().timeInMillis - targetCal.timeInMillis
+        if (diff > 0) targetCal.add(Calendar.DAY_OF_WEEK, amountDays)
     }
 
     private fun checkChanges(view: View, isChecked: Boolean) {
         (view as CheckedTextView).isChecked = !isChecked
     }
 
-    private fun checkEnabledDaysTrigger(day: Int) {
-        daysTrigger.contains(day).let { isContains ->
-            if (isContains)
-                daysTrigger.remove(day)
-            else
-                daysTrigger.add(day)
-        }
+    private fun checkEnabledDaysTrigger(day : Day) {
+        day.isEnabled = !day.isEnabled
     }
-
 }
