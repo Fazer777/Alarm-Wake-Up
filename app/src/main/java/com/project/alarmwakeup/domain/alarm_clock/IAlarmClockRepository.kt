@@ -1,12 +1,13 @@
 package com.project.alarmwakeup.domain.alarm_clock
 
 import com.project.alarmwakeup.domain.alarm_clock.models.AlarmInterim
+import kotlinx.coroutines.flow.Flow
 
 interface IAlarmClockRepository {
-    suspend fun insertAlarmClockToDb(alarmInterim: AlarmInterim) : Long
+    suspend fun insertAlarmClock(alarmInterim: AlarmInterim)
 
-    suspend fun getAllAlarmClocksFromDb() : List<AlarmInterim>
+    fun getAllAlarmClocks(): Flow<List<AlarmInterim>>
 
-    suspend fun deleteAlarmClockFromDb(alarmClockId : Int)
-    suspend fun updateEnablingAlarmClockDb(alarmClockId : Int, isEnabled : Boolean)
+    suspend fun deleteAlarmClock(alarmClockId : Int)
+    suspend fun updateEnablingAlarmClock(alarmClockId : Int, isEnabled : Boolean)
 }
