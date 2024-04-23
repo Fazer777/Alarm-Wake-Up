@@ -6,39 +6,48 @@ import com.project.alarmwakeup.data.alarm_clock.models.AlarmClock
 import com.project.alarmwakeup.domain.alarm_clock.IAlarmClockRepository
 import com.project.alarmwakeup.domain.alarm_clock.models.AlarmInterim
 import com.project.alarmwakeup.domain.alarm_clock.models.Day
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.lang.reflect.Type
 
-class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmClockRepository {
+class AlarmClockRepositoryImpl(
+    private val alarmDao: IAlarmClockDao,
+) : IAlarmClockRepository {
 
-    override suspend fun insertAlarmClockToDb(alarmInterim: AlarmInterim) : Long {
-        return withContext(Dispatchers.IO){
-            val alarmClock = mapToAlarmClock(alarmInterim)
-            return@withContext alarmDao.insertNewAlarmClock(alarmClock)
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    override suspend fun insertAlarmClock(alarmInterim: AlarmInterim) {
+        withContext(dispatcher) {
+            alarmDao.insertAlarmClock(
+                mapToAlarmClock(alarmInterim)
+            )
         }
     }
 
-    override suspend fun getAllAlarmClocksFromDb(): List<AlarmInterim> {
-        return withContext(Dispatchers.IO){
-            return@withContext alarmDao.getAllAlarmClocks().map { it -> mapToAlarmInterim(it) }
-        }
+    override fun getAllAlarmClocks(): Flow<List<AlarmInterim>> {
+        return alarmDao.getAllAlarmClocks().map { list ->
+                list.map { alarmClock -> mapToAlarmInterim(alarmClock) }
+            }
+
     }
 
-    override suspend fun deleteAlarmClockFromDb(alarmClockId: Int) {
-        withContext(Dispatchers.IO){
+    override suspend fun deleteAlarmClock(alarmClockId: Int) {
+        withContext(dispatcher) {
             alarmDao.deleteAlarmClock(alarmClockId)
         }
     }
 
-    override suspend fun updateEnablingAlarmClockDb(alarmClockId: Int, isEnabled: Boolean) {
-        withContext(Dispatchers.IO){
+    override suspend fun updateEnablingAlarmClock(alarmClockId: Int, isEnabled: Boolean) {
+        withContext(dispatcher) {
             alarmDao.updateEnablingAlarmClock(alarmClockId = alarmClockId, isEnabled = isEnabled)
         }
     }
 
 
-    private fun mapToAlarmClock(alarmInterim: AlarmInterim) : AlarmClock{
+    private fun mapToAlarmClock(alarmInterim: AlarmInterim): AlarmClock {
         return AlarmClock(
             id = alarmInterim.id,
             title = alarmInterim.title,
@@ -53,7 +62,7 @@ class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmCl
         )
     }
 
-    private fun mapToAlarmInterim(alarmClock: AlarmClock) : AlarmInterim{
+    private fun mapToAlarmInterim(alarmClock: AlarmClock): AlarmInterim {
         return AlarmInterim(
             id = alarmClock.id,
             title = alarmClock.title,
@@ -68,14 +77,14 @@ class AlarmClockRepositoryImpl(private val alarmDao : IAlarmClockDao) : IAlarmCl
         )
     }
 
-    private fun mapDaysTriggerToJson(daysTrigger : List<Day>) : String {
+    private fun mapDaysTriggerToJson(daysTrigger: List<Day>): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.toJson(daysTrigger)
     }
 
-    private fun mapDaysTriggerJsonToArray(json : String) : List<Day>{
+    private fun mapDaysTriggerJsonToArray(json: String): List<Day> {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val type : Type = object : TypeToken<List<Day>>() {}.type
+        val type: Type = object : TypeToken<List<Day>>() {}.type
         return gson.fromJson(json, type)
     }
 
