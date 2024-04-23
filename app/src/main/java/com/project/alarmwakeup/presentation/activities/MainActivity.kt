@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 resources.getString(R.string.intent_key_create_alarm),
                 AlarmInterim::class.java
             )
-            mainViewModel.onAddAlarmButtonClicked(alarmInterim!!)
+            mainViewModel.addAlarm(alarmInterim!!)
         }
     }
 
@@ -55,6 +55,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        initButtons()
+        initRecyclerView()
+
         calendar = Calendar.getInstance()
         alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         sharedPreferences = getSharedPreferences(
@@ -62,9 +65,9 @@ class MainActivity : AppCompatActivity() {
             Context.MODE_PRIVATE
         )
 
-        initButtons()
-        initRecyclerView()
-        initObservers()
+        mainViewModel.getAlarmClocksLive().observe(this@MainActivity){newList->
+            alarmAdapter.setAdapterList(newList = newList)
+        }
     }
 
     override fun onResume() {
@@ -87,18 +90,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun initObservers() {
-        mainViewModel.alarmId.observe(this@MainActivity) {
-            alarmId = it
-            alarmInterim?.id = alarmId
-            alarmAdapter.addAlarm(alarmInterim!!)
-            alarmInterim = null
-        }
 
-        mainViewModel.alarmClockListLive.observe(this@MainActivity) { list ->
-            alarmAdapter.setAdapterList(list)
-        }
-    }
 
     private fun initRecyclerView() = with(binding) {
         recyclerViewAlarms.layoutManager = LinearLayoutManager(this@MainActivity)
@@ -109,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                 val alarmInterim = alarmAdapter.getAdapterItem(position)
                 if (isChecked){
                     scheduleAlarm(alarmInterim)
-                    mainViewModel.onSwitchEnablingEvent(
+                    mainViewModel.switchEnablingAlarm(
                         alarmClockId = alarmInterim.id.toInt(),
                         isEnabled = isChecked
                     )
@@ -117,7 +109,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 else{
                     cancelAlarm(alarmInterim)
-                    mainViewModel.onSwitchEnablingEvent(
+                    mainViewModel.switchEnablingAlarm(
                         alarmClockId = alarmInterim.id.toInt(),
                         isEnabled = isChecked
                     )
@@ -132,9 +124,8 @@ class MainActivity : AppCompatActivity() {
             // TODO ("in the future, need do alert dialog)
             override fun onItemLongClick(itemView: View, position: Int) {
                 val alarmInterim = alarmAdapter.getAdapterItem(position)
-                mainViewModel.onDeleteAlarmButtonCLicked(alarmInterim.id.toInt())
+                mainViewModel.deleteAlarm(alarmInterim.id.toInt())
                 cancelAlarm(alarmInterim)
-                alarmAdapter.deleteAlarm(position = position)
                 when(alarmInterim.isRepeated){
                     true ->{
                         val countDays = alarmInterim.daysTrigger.count{it.isEnabled}
@@ -152,7 +143,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scheduleAlarm(alarm: AlarmInterim) {
-        val alarmIntent: Intent = Intent.parseUri(alarm.intentUri, Intent.URI_INTENT_SCHEME)
+        //val alarmIntent: Intent = Intent.parseUri(alarm.intentUri, Intent.URI_INTENT_SCHEME)
+        val alarmIntent: Intent = Intent(baseContext, AlarmActivity::class.java)
+        alarmIntent.putExtra(resources.getString(R.string.intent_key_repeating_alarm), alarm.isRepeated)
 
         if (!alarm.isRepeated) {
             setOneTimeAlarm(
@@ -164,7 +157,8 @@ class MainActivity : AppCompatActivity() {
             setRepeatedAlarm(
                 alarmIntent = alarmIntent,
                 daysTriggers = alarm.daysTrigger,
-                triggerTimeInMillis = alarm.responseTimeMillis
+                hour = alarm.hour,
+                minute = alarm.minute
             )
         }
     }
@@ -183,11 +177,15 @@ class MainActivity : AppCompatActivity() {
     private fun setRepeatedAlarm(
         alarmIntent: Intent,
         daysTriggers: List<Day>,
-        triggerTimeInMillis: Long
+        hour : Int,
+        minute : Int
     ) {
 
         calendar = Calendar.getInstance().apply {
-            timeInMillis = triggerTimeInMillis
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
         }
 
         for (i in 0 until 7) {
@@ -260,7 +258,7 @@ class MainActivity : AppCompatActivity() {
             alarm.daysTrigger.forEach { day ->
                 if (day.isEnabled) {
                     Log.d("AAA", "cancelRepeatedAlarm: ${day.requestCode!!} ")
-                    cancel(day.requestCode!!, alarm.isRepeated)
+                    cancel(day.requestCode!!, isRepeated = true)
                 }
             }
         }

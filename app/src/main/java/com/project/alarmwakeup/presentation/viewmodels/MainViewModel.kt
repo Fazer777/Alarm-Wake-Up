@@ -1,9 +1,8 @@
 package com.project.alarmwakeup.presentation.viewmodels
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asFlow
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.project.alarmwakeup.domain.alarm_clock.models.AlarmInterim
 import com.project.alarmwakeup.domain.alarm_clock.usecase.AddAlarmUseCase
@@ -19,38 +18,26 @@ class MainViewModel(
     private val switchEnablingUseCase: SwitchEnablingUseCase
 ) : ViewModel() {
 
-    private val alarmClockListMutableLive = MutableLiveData<List<AlarmInterim>>()
-    val alarmClockListLive: LiveData<List<AlarmInterim>> = alarmClockListMutableLive
 
-    private val alarmIdMutableLive = MutableLiveData<Long>()
-    val alarmId: LiveData<Long> = alarmIdMutableLive
-
-    init {
-        getAlarmClocks()
-    }
-
-    fun onAddAlarmButtonClicked(alarmInterim: AlarmInterim) {
+    fun addAlarm(alarmInterim: AlarmInterim) {
         viewModelScope.launch {
-            alarmIdMutableLive.postValue(addAlarmUseCase.execute(alarmInterim = alarmInterim))
+            addAlarmUseCase.execute(alarmInterim = alarmInterim)
         }
     }
 
-    fun getAlarmClocks() {
-        viewModelScope.launch {
-            alarmClockListMutableLive.postValue(getAlarmClocksUseCase.execute())
-        }
+    fun getAlarmClocksLive() : LiveData<List<AlarmInterim>> {
+          return getAlarmClocksUseCase.execute().asLiveData()
     }
 
-    fun onDeleteAlarmButtonCLicked(alarmClockId: Int) {
+    fun deleteAlarm(alarmClockId: Int) {
         viewModelScope.launch {
             deleteAlarmUseCase.execute(alarmClockId = alarmClockId)
         }
     }
 
-    fun onSwitchEnablingEvent(alarmClockId: Int, isEnabled : Boolean){
+    fun switchEnablingAlarm(alarmClockId: Int, isEnabled : Boolean){
         viewModelScope.launch{
             switchEnablingUseCase.execute(alarmClockId = alarmClockId, isEnabled = isEnabled)
         }
     }
-
 }
