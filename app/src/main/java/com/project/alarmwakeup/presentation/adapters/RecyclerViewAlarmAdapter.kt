@@ -59,8 +59,6 @@ class RecyclerViewAlarmAdapter : RecyclerView.Adapter<RecyclerViewAlarmAdapter.A
         }
     }
 
-
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlarmViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.alarm_item_recycler_view, parent, false)
         return AlarmViewHolder(view)
@@ -74,15 +72,6 @@ class RecyclerViewAlarmAdapter : RecyclerView.Adapter<RecyclerViewAlarmAdapter.A
         holder.bind(alarmList[position])
     }
 
-    fun addAlarm(alarmInterim: AlarmInterim){
-        alarmList.add(alarmInterim)
-        notifyItemInserted(alarmList.lastIndex)
-    }
-
-     fun deleteAlarm(position: Int){
-        alarmList.removeAt(position)
-        notifyItemRemoved(position)
-    }
 
     fun setAdapterList(newList : List<AlarmInterim>){
         alarmList.clear()
